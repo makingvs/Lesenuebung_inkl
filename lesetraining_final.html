@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesetraining</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend+Deca:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #FFFDF7;
+    --surface: #FFFFFF;
+    --border: #E8E0CC;
+    --text: #1A1612;
+    --muted: #7A6E5F;
+    --accent: #D44C00;
+    --accent2: #1A6B3C;
+    --accent3: #1848A0;
+    --pill-active-bg: #D44C00;
+    --pill-active-text: #fff;
+    --pill-bg: #F5F0E8;
+    --pill-text: #1A1612;
+    --btn-bg: #1A1612;
+    --btn-text: #FFFDF7;
+    --radius: 16px;
+    --font-display: 'Lexend Deca', sans-serif;
+    --font-body: 'Atkinson Hyperlegible', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  h1.app-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .app-subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 32px;
+    font-family: var(--font-body);
+  }
+
+  .screen { display: none; width: 100%; max-width: 700px; }
+  .screen.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .pill-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    padding: 10px 18px;
+    border-radius: 100px;
+    border: 2px solid var(--border);
+    background: var(--pill-bg);
+    color: var(--pill-text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pill:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .pill.active { background: var(--pill-active-bg); border-color: var(--pill-active-bg); color: var(--pill-active-text); }
+
+  .diff-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .diff-btn {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 14px 12px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--pill-bg);
+    color: var(--pill-text);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .diff-btn .diff-label { font-size: 0.75rem; font-weight: 400; color: var(--muted); font-family: var(--font-body); }
+  .diff-btn.active { background: var(--accent3); border-color: var(--accent3); color: #fff; }
+  .diff-btn.active .diff-label { color: rgba(255,255,255,0.75); }
+
+  .mode-toggle { display: flex; gap: 10px; flex-wrap: wrap; }
+  .mode-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--pill-bg);
+    color: var(--pill-text);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .mode-btn.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+
+  .slider-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .slider-row label { font-size: 0.9rem; color: var(--muted); min-width: 80px; font-family: var(--font-body); }
+  input[type=range] { flex: 1; min-width: 100px; accent-color: var(--accent); height: 6px; cursor: pointer; }
+  .slider-value { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; min-width: 60px; color: var(--text); }
+
+  .blitz-row { display: flex; align-items: center; gap: 16px; padding: 4px 0; }
+  .toggle-switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    border-radius: 100px;
+    background: var(--border);
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    top: 4px; left: 4px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-track { background: var(--accent); }
+  .toggle-switch input:checked + .toggle-track::after { transform: translateX(24px); }
+  .blitz-label { font-family: var(--font-body); font-size: 1rem; color: var(--text); }
+  .blitz-sub { font-size: 0.82rem; color: var(--muted); display: block; margin-top: 2px; }
+
+  .start-btn {
+    width: 100%;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.3rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .start-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+  .start-btn:active { transform: translateY(0); }
+  .start-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ─── READ SCREEN ─── */
+  #screen-read { display: none; flex-direction: column; align-items: center; justify-content: flex-start; min-height: calc(100vh - 80px); }
+  #screen-read.active { display: flex; }
+
+  .read-topbar {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+  .read-info { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--muted); }
+  .back-btn {
+    padding: 10px 20px;
+    border-radius: 100px;
+    border: 2px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .back-btn:hover { border-color: var(--text); color: var(--text); }
+
+  .progress-bar-wrap {
+    width: 100%; max-width: 700px;
+    height: 8px; background: var(--border);
+    border-radius: 100px; margin-bottom: 28px; overflow: hidden;
+  }
+  .progress-bar-fill { height: 100%; border-radius: 100px; background: var(--accent); transition: width 0.3s ease; }
+
+  .timer-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 0.04em;
+    min-height: 2rem;
+  }
+
+  /* ─── DISPLAY AREA ─── */
+  .display-area {
+    width: 100%; max-width: 700px;
+    background: var(--surface);
+    border: 3px solid var(--border);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+    padding: 32px 24px;
+    margin-bottom: 24px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .display-area.blitz-flash { border-color: var(--accent); }
+
+  .display-text {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(3rem, 14vw, 7rem);
+    letter-spacing: 0.04em;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.1;
+    transition: opacity 0.15s;
+    user-select: none;
+  }
+  .display-text.hidden { opacity: 0; }
+
+  /* Shape display */
+  .shape-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+  .shape-label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .blitz-overlay {
+    position: absolute; inset: 0;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .blitz-overlay.visible { opacity: 1; pointer-events: auto; }
+  .blitz-overlay-text { font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; color: var(--muted); letter-spacing: 0.05em; }
+
+  .weiter-btn {
+    flex: 1;
+    padding: 22px 20px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .weiter-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+  .weiter-btn:active { transform: translateY(0); }
+  .weiter-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* ─── TTS toggle in menu ─── */
+
+
+  /* ─── RESULT ─── */
+  #screen-result { display: none; }
+  #screen-result.active { display: block; }
+
+  .result-header { text-align: center; padding: 32px 0 24px; }
+  .result-emoji { font-size: 4rem; margin-bottom: 12px; display: block; }
+  .result-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.8rem, 6vw, 2.8rem); letter-spacing: -0.02em; color: var(--text); margin-bottom: 8px; }
+  .result-sub { font-size: 1rem; color: var(--muted); }
+
+  .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+  .stat-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 18px 12px; text-align: center; }
+  .stat-num { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.6rem, 5vw, 2.4rem); color: var(--text); line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-body); }
+
+  .items-preview { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; max-height: 160px; overflow-y: auto; }
+  .items-preview-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; font-family: var(--font-body); }
+  .items-list { display: flex; flex-wrap: wrap; gap: 7px; }
+  .item-chip { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; padding: 4px 12px; border-radius: 100px; background: var(--pill-bg); border: 2px solid var(--border); color: var(--text); letter-spacing: 0.04em; }
+
+  .again-btn { width: 100%; padding: 20px; border-radius: var(--radius); border: none; background: var(--btn-bg); color: var(--btn-text); font-family: var(--font-display); font-weight: 900; font-size: 1.2rem; letter-spacing: 0.04em; cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-bottom: 12px; }
+  .again-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+  .menu-btn { width: 100%; padding: 16px; border-radius: var(--radius); border: 2px solid var(--border); background: transparent; color: var(--text); font-family: var(--font-display); font-weight: 700; font-size: 1rem; cursor: pointer; transition: border-color 0.15s; }
+  .menu-btn:hover { border-color: var(--text); }
+
+
+  /* ─── LETTER PICKER ─── */
+  .letter-picker {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .letter-picker.visible { display: flex; }
+  .letter-picker-label {
+    width: 100%;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+  .letter-pill {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    background: var(--pill-bg);
+    color: var(--pill-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .letter-pill:hover { border-color: var(--accent); }
+  .letter-pill.active {
+    background: var(--pill-active-bg);
+    border-color: var(--pill-active-bg);
+    color: var(--pill-active-text);
+  }
+  .letter-pill.inactive {
+    opacity: 0.35;
+    background: var(--pill-bg);
+    border-color: var(--border);
+    color: var(--pill-text);
+  }
+  #blitz-speed-row { display: none; }
+  #blitz-speed-row.visible { display: flex; }
+
+  @media (max-width: 480px) {
+    body { padding: 16px 12px 32px; }
+    .diff-grid { grid-template-columns: 1fr; }
+    .result-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="app-title">LESETRAINING</h1>
+<p class="app-subtitle">Leseübungen für Kinder</p>
+
+<!-- ═══════════════ STARTMENÜ ═══════════════ -->
+<div class="screen active" id="screen-menu">
+
+  <div class="card">
+    <div class="card-title">Buchstabengruppen wählen</div>
+    <div class="pill-grid" id="group-pills">
+      <button class="pill" data-group="AMLU">AMLU</button>
+      <button class="pill" data-group="FSIN">FSIN</button>
+      <button class="pill" data-group="BOWE">BOWE</button>
+      <button class="pill" data-group="RGDH">RGDH</button>
+      <button class="pill" data-group="KTÄP">KTÄP</button>
+      <button class="pill" data-group="ZÖVCJÜXY">ZÖVCJÜXY</button>
+    </div>
+    <div class="letter-picker" id="letter-picker">
+      <span class="letter-picker-label">Buchstaben abwählen:</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Schwierigkeitsstufe</div>
+    <div class="diff-grid" id="diff-btns">
+      <button class="diff-btn" data-diff="buchstaben">
+        Buchstaben
+        <span class="diff-label">Einzelne Großbuchstaben</span>
+      </button>
+      <button class="diff-btn" data-diff="silben">
+        Silben
+        <span class="diff-label">MA · LA · FA · NA …</span>
+      </button>
+      <button class="diff-btn" data-diff="woerter">
+        Wörter
+        <span class="diff-label">MAMA · LAMA · NASE …</span>
+      </button>
+      <button class="diff-btn" data-diff="saetze">
+        Sätze
+        <span class="diff-label">Kurze einfache Sätze</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Modus</div>
+    <div class="mode-toggle" id="mode-btns">
+      <button class="mode-btn" data-mode="zeit">⏱ Zeitmodus</button>
+      <button class="mode-btn" data-mode="aufgabe">🔢 Aufgabenmodus</button>
+    </div>
+    <div style="margin-top:16px;" id="zeit-row">
+      <div class="slider-row">
+        <label>Dauer</label>
+        <input type="range" id="zeit-slider" min="1" max="5" step="1" value="2">
+        <span class="slider-value" id="zeit-val">2 Min.</span>
+      </div>
+    </div>
+    <div style="margin-top:16px; display:none;" id="aufgabe-row">
+      <div class="slider-row">
+        <label>Items</label>
+        <input type="range" id="aufgabe-slider" min="10" max="50" step="10" value="20">
+        <span class="slider-value" id="aufgabe-val">20</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Blitzlesen</div>
+    <div class="blitz-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="blitz-toggle">
+        <span class="toggle-track"></span>
+      </label>
+      <div>
+        <span class="blitz-label">Blitzlesen aktivieren</span>
+        <span class="blitz-sub">Element wird kurz eingeblendet – schnell lesen!</span>
+      </div>
+    </div>
+    <div class="slider-row" id="blitz-speed-row" style="margin-top:14px;">
+      <label>Sichtbar</label>
+      <input type="range" id="blitz-slider" min="500" max="3000" step="500" value="1500">
+      <span class="slider-value" id="blitz-val">1,5 Sek.</span>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" disabled>START →</button>
+</div>
+
+<!-- ═══════════════ LESEN ═══════════════ -->
+<div class="screen" id="screen-read">
+  <div class="read-topbar">
+    <button class="back-btn" id="back-btn">← Zurück</button>
+    <span class="read-info" id="read-info">0 / 0</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="timer-display" id="timer-display"></div>
+  <div class="display-area" id="display-area">
+    <div class="display-text" id="display-text"></div>
+    <!-- Shape shown instead of text on shape-items -->
+    <div class="shape-container" id="shape-container" style="display:none;">
+      <svg id="shape-svg" width="160" height="160" viewBox="0 0 160 160"></svg>
+      <span class="shape-label" id="shape-name"></span>
+    </div>
+    <div class="blitz-overlay" id="blitz-overlay">
+      <span class="blitz-overlay-text">● ● ●</span>
+    </div>
+  </div>
+  <div class="action-row">
+    <button class="weiter-btn" id="weiter-btn">WEITER →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ ERGEBNIS ═══════════════ -->
+<div class="screen" id="screen-result">
+  <div class="result-header">
+    <span class="result-emoji" id="result-emoji">⭐</span>
+    <div class="result-title" id="result-title">Super gemacht!</div>
+    <div class="result-sub" id="result-sub"></div>
+  </div>
+  <div class="result-stats">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-items">0</div>
+      <div class="stat-label">Items gelesen</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-time">0s</div>
+      <div class="stat-label">Zeit</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-speed">0</div>
+      <div class="stat-label">Sek. / Item</div>
+    </div>
+  </div>
+  <div class="items-preview">
+    <div class="items-preview-title">Gelesene Items</div>
+    <div class="items-list" id="items-list"></div>
+  </div>
+  <button class="again-btn" id="again-btn">NOCHMAL →</button>
+  <button class="menu-btn" id="menu-btn">← Zurück zum Menü</button>
+</div>
+
+<script>
+// ═══════════ DATA ═══════════
+// Kuratierte deutsche Silben (2 und 3 Buchstaben) pro Gruppe
+const SILBEN_DB = {
+  AMLU: [
+    'MA','AM','LA','AL','MU','UM','LU','UL',
+    'MAL','LAM','LUM','MUL','ALM','LAU','MAU','AUL'
+  ],
+  FSIN: [
+    'FI','SI','NI','IS','IN','NI','SF','NS',
+    'FIN','SIN','NIS','INS','IST','INN','NIF','FIS'
+  ],
+  BOWE: [
+    'BO','OB','WO','BE','EB','OW','WE','EW',
+    'BOW','WOB','WEB','OBE','BOE','WOE','OWE','BEW'
+  ],
+  RGDH: [
+    'RA','AR','GA','AG','DA','AD','HA','AH','GR','DR',
+    'RAD','DAR','GAR','HAR','GRA','DRA','HAD','RAH','HAG','DAH'
+  ],
+  KTÄP: [
+    'KA','AK','TA','AT','PÄ','ÄP','KÄ','ÄK','ÄT','TÄ',
+    'KAT','TAK','KÄP','PÄK','TAP','PAT','KAP','PAK','TÄP','PÄT'
+  ],
+  ZÖVCJÜXY: [
+    'ZO','OZ','VÖ','ÖV','JÜ','ÜJ','JO','OJ','ZÜ','ÜZ',
+    'ZOV','VOZ','JOY','ZÖV','VÖC','ÖVZ','JÜX','ZOJ','VOJ','JOZ'
+  ]
+};
+
+const DATA = {
+  AMLU: {
+    buchstaben: ['A','M','L','U'],
+    woerter: [
+      'MAMA','LAMA','MAUS','MOND','LAMM','LUFT','MAIS','LUPE','ULME','MAUL',
+      'MAUER','LAUB','LAMPE','MULDE','MALEN','LAUFEN','LAUNE','MEHL','NAGEL','MALE',
+      'MANTEL','LAKEN','MUSCHEL','MURMEL','ALPEN','NUDEL','TUNNEL','MANGEL','LATERNE','MILCH'
+    ],
+    saetze: [
+      'MAMA MAG LAMAS.',
+      'DIE LAMPE LEUCHTET.',
+      'DIE MAUS LÄUFT SCHNELL.',
+      'DER MOND LEUCHTET HELL.',
+      'MAMA KAUFT MAIS.',
+      'DIE LUPE IST KLEIN.',
+      'MIA MALT EIN BILD.',
+      'DIE ULME IST ALT.',
+      'LUFT IST KLAR UND FRISCH.',
+      'DAS LAMM IST WEICH.',
+      'DER MAUL IST OFFEN.',
+      'LAUB FÄLLT VOM BAUM.'
+    ]
+  },
+  FSIN: {
+    buchstaben: ['F','S','I','N'],
+    woerter: [
+      'FISCH','NASE','SAFT','INSEL','NEST','FARN','SONNE','IGEL','FINGER','SCHIFF',
+      'SINGEN','NISTEN','FINDEN','SINKEN','INNEN','SIEBEN','NEIN','SINN','FUNKE','NABEL',
+      'FENSTER','NADEL','SAND','FAHNE','NACHT','STIFT','FELD','SUPPE','NINA','FLUSS'
+    ],
+    saetze: [
+      'FINN SINGT.',
+      'DIE NASE JUCKT.',
+      'SIE IST FEIN.',
+      'DER FISCH SCHWIMMT.',
+      'DAS NEST IST OBEN.',
+      'DER IGEL SCHLÄFT.',
+      'FINN FINDET EIN NEST.',
+      'DIE SONNE SCHEINT HEUTE.',
+      'DER FINGER ZEIGT HIN.',
+      'SINA SINGT EIN LIED.',
+      'DAS SCHIFF FÄHRT WEG.',
+      'DIE INSEL IST KLEIN.'
+    ]
+  },
+  BOWE: {
+    buchstaben: ['B','O','W','E'],
+    woerter: [
+      'BOOT','BALL','WOLF','ENTE','BROT','VOGEL','EULE','BAUM','WAGEN','BLUME',
+      'BOGEN','BOTE','EBER','BODEN','OBEN','WOLKE','WOLKEN','BOOTE','VOGELNEST','BEIL',
+      'BIRNE','WIESE','BEERE','WELLE','BIENE','ERNTE','BODEN','WASSER','BLATT','BUSCH'
+    ],
+    saetze: [
+      'DAS BOOT FÄHRT.',
+      'EIN WOLF LÄUFT.',
+      'DIE ENTE SCHWIMMT.',
+      'DER BAUM IST ALT.',
+      'DER VOGEL SINGT LAUT.',
+      'DIE EULE FLIEGT NACHTS.',
+      'DAS BROT IST FRISCH.',
+      'DER WAGEN IST BLAU.',
+      'DIE BLUME BLÜHT SCHÖN.',
+      'DER BOGEN IST RUND.',
+      'DIE WOLKE IST WEISS.',
+      'OBEN IST DER HIMMEL BLAU.'
+    ]
+  },
+  RGDH: {
+    buchstaben: ['R','G','D','H'],
+    woerter: [
+      'ROSE','GRAS','DACHS','HUND','REGEN','GABEL','DOSE','HASE','DRACHEN','RABE',
+      'BURG','HERD','GRABEN','HUNGER','DREHEN','HANDEL','HAFER','GURKE','HARFE','GARTEN',
+      'HAMSTER','DREIECK','HÜGEL','GORILLA','HERBST','DACH','RIEGEL','HUHN','GEBÄUDE','HELM'
+    ],
+    saetze: [
+      'DER HUND BELLT.',
+      'DER REGEN FÄLLT.',
+      'EIN DACHS GRÄBT.',
+      'DIE ROSE BLÜHT.',
+      'DAS GRAS IST GRÜN.',
+      'DER HASE LÄUFT WEG.',
+      'DER DRACHEN FLIEGT HOCH.',
+      'HANNA HAT HUNGER.',
+      'DIE GABEL LIEGT DA.',
+      'DER HERD IST WARM.',
+      'EINE BURG STEHT HOCH.',
+      'DER RABE RUFT LAUT.'
+    ]
+  },
+  KTÄP: {
+    buchstaben: ['K','T','Ä','P'],
+    woerter: [
+      'KATZE','TIGER','KÄFER','KETTE','TASSE','PAKET','KÄPPI','TOPF','KATER','TAPETE',
+      'KAPPE','TEPPICH','KÄFIG','KNOPF','TAKT','TAPFER','KAKTUS','PALETTE','TINTE','PLATZ',
+      'KERZE','PINSEL','TREPPE','KIRSCHE','TULPE','STERN','PILZ','KISSEN','TELLER','PAPAGEI'
+    ],
+    saetze: [
+      'DAS PAKET IST DA.',
+      'DER KATER SCHLÄFT.',
+      'DIE KATZE MIAUT.',
+      'DER KÄFER KRABBELT.',
+      'DIE KETTE GLÄNZT.',
+      'DER TOPF IST VOLL.',
+      'TINA TRÄGT EIN PAKET.',
+      'DAS KÄPPI SITZT GUT.',
+      'DER TIGER IST SCHNELL.',
+      'DIE TASSE IST WARM.',
+      'EIN KAKTUS WÄCHST HIER.',
+      'DIE KERZE BRENNT HELL.'
+    ]
+  },
+  ZÖVCJÜXY: {
+    buchstaben: ['Z','Ö','V','C','J','Ü','X','Y'],
+    woerter: [
+      'ZIEGE','VOGEL','FUCHS','JUNGE','ZOPF','JACKE','ZEBRA','CLOWN','JUBEL','ZÖPFE',
+      'VÖGEL','JUCHHE','XYLOFON','ZYLINDER','JUCKEN','JUBELN','ZAUBER','ZIRKUS','VASE','JUNI',
+      'CELLO','JOGHURT','ZAUN','VULKAN','JÄGER','ZEHEN','VIOLINE','JACKE','JODELN','ZACKE'
+    ],
+    saetze: [
+      'DAS ZEBRA LÄUFT.',
+      'DIE ZIEGE MECKERT.',
+      'EIN JUNGE JUBELT.',
+      'DER CLOWN LACHT.',
+      'DER VOGEL ZWITSCHERT.',
+      'DIE JACKE IST WARM.',
+      'DER ZOPF IST LANG.',
+      'DER FUCHS IST SCHLAU.',
+      'DAS XYLOFON KLINGT SCHÖN.',
+      'DER JUNGE JUBELT LAUT.',
+      'DER ZIRKUS IST BUNT.',
+      'DIE VÖGEL FLIEGEN HOCH.'
+    ]
+  }
+};
+
+// Shape definitions: every N items insert a shape
+const SHAPES = [
+  { name: 'STERN',     draw: (svg) => {
+    const pts = [];
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? 70 : 28;
+      const a = (i * Math.PI * 2) / 10 - Math.PI / 2;
+      pts.push(`${80 + r * Math.cos(a)},${80 + r * Math.sin(a)}`);
+    }
+    const p = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    p.setAttribute('points', pts.join(' '));
+    p.setAttribute('fill', svg.dataset.color);
+    svg.appendChild(p);
+  }},
+  { name: 'RECHTECK',  draw: (svg) => {
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x','20'); r.setAttribute('y','44');
+    r.setAttribute('width','120'); r.setAttribute('height','72');
+    r.setAttribute('rx','6'); r.setAttribute('fill', svg.dataset.color);
+    svg.appendChild(r);
+  }},
+  { name: 'QUADRAT',   draw: (svg) => {
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('x','28'); r.setAttribute('y','28');
+    r.setAttribute('width','104'); r.setAttribute('height','104');
+    r.setAttribute('rx','6'); r.setAttribute('fill', svg.dataset.color);
+    svg.appendChild(r);
+  }},
+  { name: 'DREIECK',   draw: (svg) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    p.setAttribute('points','80,12 148,148 12,148');
+    p.setAttribute('fill', svg.dataset.color);
+    svg.appendChild(p);
+  }},
+  { name: 'KREIS',     draw: (svg) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','80'); c.setAttribute('cy','80'); c.setAttribute('r','68');
+    c.setAttribute('fill', svg.dataset.color);
+    svg.appendChild(c);
+  }}
+];
+const SHAPE_COLORS = ['#E84040','#2A7ED3','#2DAA5F','#F5A623','#9B59B6','#E67E22','#1ABC9C'];
+const SHAPE_INTERVAL = 5; // show shape after every N items
+
+// ═══════════ STATE ═══════════
+let selectedGroups = [];
+let selectedLetters = {}; // group -> Set of active letters
+let selectedDiff = null;
+let selectedMode = null;
+let zeitMinuten = 2;
+let aufgabeItems = 20;
+let blitzAktiv = false;
+let blitzMs = 1500;
+
+// items array: mix of strings (words) and {shape:true} objects
+let items = [];
+let currentIdx = 0;
+let startTime = null;
+let timerInterval = null;
+let timerSeconds = 0;
+let sessionItems = [];
+let currentIsShape = false;
+
+// ═══════════ UI REFS ═══════════
+const screenRead   = document.getElementById('screen-read');
+const startBtn     = document.getElementById('start-btn');
+const groupPills   = document.getElementById('group-pills');
+const diffBtns     = document.getElementById('diff-btns');
+const modeBtns     = document.getElementById('mode-btns');
+const zeitRow      = document.getElementById('zeit-row');
+const aufgabeRow   = document.getElementById('aufgabe-row');
+const zeitSlider   = document.getElementById('zeit-slider');
+const zeitVal      = document.getElementById('zeit-val');
+const aufgabeSlider= document.getElementById('aufgabe-slider');
+const aufgabeVal   = document.getElementById('aufgabe-val');
+const blitzToggle  = document.getElementById('blitz-toggle');
+const blitzSpeedRow= document.getElementById('blitz-speed-row');
+const blitzSlider  = document.getElementById('blitz-slider');
+const blitzVal     = document.getElementById('blitz-val');
+const backBtn      = document.getElementById('back-btn');
+const readInfo     = document.getElementById('read-info');
+const progressFill = document.getElementById('progress-fill');
+const timerDisplay = document.getElementById('timer-display');
+const displayArea  = document.getElementById('display-area');
+const displayText  = document.getElementById('display-text');
+const shapeCont    = document.getElementById('shape-container');
+const shapeSvg     = document.getElementById('shape-svg');
+const shapeName    = document.getElementById('shape-name');
+const blitzOverlay = document.getElementById('blitz-overlay');
+const weiterBtn    = document.getElementById('weiter-btn');
+const againBtn     = document.getElementById('again-btn');
+const menuBtn      = document.getElementById('menu-btn');
+
+// ═══════════ HELPERS ═══════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function validateStart() {
+  const hasLetters = selectedGroups.some(g => selectedLetters[g] && selectedLetters[g].size > 0);
+  startBtn.disabled = !(hasLetters && selectedDiff && selectedMode);
+}
+
+function getSilbenForLetters(g, activeLetters) {
+  // Filter the curated syllable list: keep only syllables whose letters
+  // are all in the active set for this group
+  const all = SILBEN_DB[g] || [];
+  return all.filter(syl => [...syl].every(ch => activeLetters.has(ch)));
+}
+
+function getActiveLetters(g) {
+  return selectedLetters[g] ? [...selectedLetters[g]] : [...DATA[g].buchstaben];
+}
+
+function buildItems() {
+  let pool = [];
+  for (const g of selectedGroups) {
+    if (!selectedLetters[g] || selectedLetters[g].size === 0) continue;
+    if (selectedDiff === 'silben') {
+      const filtered = getSilbenForLetters(g, selectedLetters[g]);
+      pool = pool.concat(filtered.length > 0 ? filtered : getSilbenForLetters(g, new Set(DATA[g].buchstaben)));
+    } else if (selectedDiff === 'buchstaben') {
+      pool = pool.concat([...selectedLetters[g]]);
+    } else if (DATA[g] && DATA[g][selectedDiff]) {
+      pool = pool.concat(DATA[g][selectedDiff]);
+    }
+  }
+  pool = shuffle(pool);
+  if (selectedMode === 'aufgabe') {
+    while (pool.length < aufgabeItems) pool = pool.concat(shuffle(pool));
+    pool = pool.slice(0, aufgabeItems);
+  } else {
+    while (pool.length < 200) pool = pool.concat(shuffle(pool));
+  }
+
+  // Inject shape items every SHAPE_INTERVAL text items
+  const result = [];
+  let shapeIdx = 0;
+  let textCount = 0;
+  for (const item of pool) {
+    result.push(item);
+    textCount++;
+    if (textCount % SHAPE_INTERVAL === 0) {
+      const shape = SHAPES[shapeIdx % SHAPES.length];
+      const color = SHAPE_COLORS[Math.floor(Math.random() * SHAPE_COLORS.length)];
+      result.push({ shape: true, def: shape, color });
+      shapeIdx++;
+    }
+  }
+  return result;
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m > 0 ? `${m}:${sec.toString().padStart(2,'0')}` : `${sec}s`;
+}
+
+function countTextItems() {
+  return sessionItems.filter(i => typeof i === 'string').length;
+}
+
+function updateInfo() {
+  const textDone = sessionItems.filter(i => typeof i === 'string').length;
+  if (selectedMode === 'aufgabe') {
+    readInfo.textContent = `${textDone} / ${aufgabeItems}`;
+    const pct = (textDone / aufgabeItems) * 100;
+    progressFill.style.width = pct + '%';
+  } else {
+    readInfo.textContent = `Item ${textDone}`;
+    const elapsed = Math.min(timerSeconds, zeitMinuten * 60);
+    progressFill.style.width = (elapsed / (zeitMinuten * 60)) * 100 + '%';
+  }
+}
+
+// ═══════════ SHAPE RENDERER ═══════════
+function renderShape(def, color) {
+  shapeSvg.innerHTML = '';
+  shapeSvg.dataset.color = color;
+  def.draw(shapeSvg);
+}
+
+// ═══════════ BLITZ ═══════════
+let blitzTimeout = null;
+
+function showItem(item, withBlitz) {
+  currentIsShape = (typeof item === 'object' && item.shape);
+  blitzOverlay.classList.remove('visible');
+  displayArea.classList.remove('blitz-flash');
+
+  if (currentIsShape) {
+    displayText.style.display = 'none';
+    shapeCont.style.display = 'flex';
+    renderShape(item.def, item.color);
+    shapeName.textContent = item.def.name;
+    weiterBtn.disabled = false;
+    return;
+  }
+
+  // Text item
+  displayText.style.display = '';
+  shapeCont.style.display = 'none';
+  displayText.textContent = item;
+  displayText.classList.remove('hidden');
+
+  if (withBlitz) {
+    displayArea.classList.add('blitz-flash');
+    weiterBtn.disabled = true;
+    if (blitzTimeout) clearTimeout(blitzTimeout);
+    blitzTimeout = setTimeout(() => {
+      displayText.classList.add('hidden');
+      blitzOverlay.classList.add('visible');
+      displayArea.classList.remove('blitz-flash');
+      weiterBtn.disabled = false;
+    }, blitzMs);
+  } else {
+    weiterBtn.disabled = false;
+  }
+}
+
+// ═══════════ TIMER ═══════════
+function startTimer() {
+  if (selectedMode !== 'zeit') return;
+  timerSeconds = 0;
+  const totalSec = zeitMinuten * 60;
+  timerDisplay.textContent = formatTime(totalSec);
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    const remaining = totalSec - timerSeconds;
+    timerDisplay.textContent = formatTime(remaining);
+    updateInfo();
+    if (remaining <= 0) { clearInterval(timerInterval); endSession(); }
+  }, 1000);
+}
+
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+// ═══════════ SESSION ═══════════
+function startSession() {
+  items = buildItems();
+  currentIdx = 0;
+  sessionItems = [];
+  startTime = Date.now();
+  timerSeconds = 0;
+
+  showScreen('screen-read');
+  displayText.classList.remove('hidden');
+  blitzOverlay.classList.remove('visible');
+  weiterBtn.disabled = false;
+  timerDisplay.textContent = '';
+
+  showCurrentItem();
+  startTimer();
+}
+
+function showCurrentItem() {
+  const item = items[currentIdx];
+  sessionItems.push(item);
+  updateInfo();
+  showItem(item, blitzAktiv && !(typeof item === 'object'));
+}
+
+function nextItem() {
+  if (blitzTimeout) clearTimeout(blitzTimeout);
+
+  currentIdx++;
+
+  // Check end condition based on text item count
+  const textDone = sessionItems.filter(i => typeof i === 'string').length;
+  if (selectedMode === 'aufgabe' && textDone >= aufgabeItems) {
+    stopTimer();
+    endSession();
+    return;
+  }
+  if (selectedMode === 'zeit' && currentIdx >= items.length) {
+    items = items.concat(buildItems());
+  }
+  showCurrentItem();
+}
+
+function endSession() {
+  if (blitzTimeout) clearTimeout(blitzTimeout);
+  stopTimer();
+
+  const textItems = sessionItems.filter(i => typeof i === 'string');
+  const count = textItems.length;
+  const elapsed = Math.round((Date.now() - startTime) / 1000);
+  const speed = count > 0 ? (elapsed / count).toFixed(1) : 0;
+
+  document.getElementById('stat-items').textContent = count;
+  document.getElementById('stat-time').textContent = formatTime(elapsed);
+  document.getElementById('stat-speed').textContent = speed;
+
+  const emojis = ['⭐','🌟','🎉','🏆','✨'];
+  document.getElementById('result-emoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  document.getElementById('result-title').textContent = count >= 30 ? 'Fantastisch!' : count >= 15 ? 'Super gemacht!' : 'Weiter so!';
+  document.getElementById('result-sub').textContent = `${count} Items in ${formatTime(elapsed)} gelesen`;
+
+  const list = document.getElementById('items-list');
+  list.innerHTML = '';
+  const seen = new Set();
+  for (const it of textItems) {
+    if (!seen.has(it)) {
+      seen.add(it);
+      const chip = document.createElement('span');
+      chip.className = 'item-chip';
+      chip.textContent = it;
+      list.appendChild(chip);
+    }
+  }
+  showScreen('screen-result');
+}
+
+// ═══════════ EVENTS: MENU ═══════════
+const letterPicker = document.getElementById('letter-picker');
+
+function renderLetterPicker() {
+  // Remove all letter pills (keep label)
+  const label = letterPicker.querySelector('.letter-picker-label');
+  letterPicker.innerHTML = '';
+  letterPicker.appendChild(label);
+
+  if (selectedGroups.length === 0) {
+    letterPicker.classList.remove('visible');
+    return;
+  }
+  letterPicker.classList.add('visible');
+
+  for (const g of selectedGroups) {
+    const letters = DATA[g].buchstaben;
+    if (!selectedLetters[g]) {
+      selectedLetters[g] = new Set(letters); // all active by default
+    }
+    for (const letter of letters) {
+      const btn = document.createElement('button');
+      btn.className = 'letter-pill' + (selectedLetters[g].has(letter) ? ' active' : ' inactive');
+      btn.textContent = letter;
+      btn.dataset.group = g;
+      btn.dataset.letter = letter;
+      letterPicker.appendChild(btn);
+    }
+  }
+}
+
+letterPicker.addEventListener('click', e => {
+  const btn = e.target.closest('[data-letter]');
+  if (!btn) return;
+  const g = btn.dataset.group;
+  const letter = btn.dataset.letter;
+  if (!selectedLetters[g]) selectedLetters[g] = new Set(DATA[g].buchstaben);
+
+  if (selectedLetters[g].has(letter)) {
+    // Only deselect if at least 2 remain (need min 2 for silben)
+    if (selectedLetters[g].size > 1) {
+      selectedLetters[g].delete(letter);
+      btn.classList.remove('active');
+      btn.classList.add('inactive');
+    }
+  } else {
+    selectedLetters[g].add(letter);
+    btn.classList.add('active');
+    btn.classList.remove('inactive');
+  }
+  validateStart();
+});
+
+groupPills.addEventListener('click', e => {
+  const btn = e.target.closest('[data-group]');
+  if (!btn) return;
+  btn.classList.toggle('active');
+  const g = btn.dataset.group;
+  if (selectedGroups.includes(g)) {
+    selectedGroups = selectedGroups.filter(x => x !== g);
+    delete selectedLetters[g];
+  } else {
+    selectedGroups.push(g);
+    selectedLetters[g] = new Set(DATA[g].buchstaben);
+  }
+  renderLetterPicker();
+  validateStart();
+});
+
+diffBtns.addEventListener('click', e => {
+  const btn = e.target.closest('[data-diff]');
+  if (!btn) return;
+  diffBtns.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedDiff = btn.dataset.diff;
+  validateStart();
+});
+
+modeBtns.addEventListener('click', e => {
+  const btn = e.target.closest('[data-mode]');
+  if (!btn) return;
+  modeBtns.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedMode = btn.dataset.mode;
+  zeitRow.style.display = selectedMode === 'zeit' ? 'block' : 'none';
+  aufgabeRow.style.display = selectedMode === 'aufgabe' ? 'block' : 'none';
+  validateStart();
+});
+
+zeitSlider.addEventListener('input', () => { zeitMinuten = parseInt(zeitSlider.value); zeitVal.textContent = zeitMinuten + ' Min.'; });
+aufgabeSlider.addEventListener('input', () => { aufgabeItems = parseInt(aufgabeSlider.value); aufgabeVal.textContent = aufgabeItems; });
+
+blitzToggle.addEventListener('change', () => {
+  blitzAktiv = blitzToggle.checked;
+  if (blitzAktiv) blitzSpeedRow.classList.add('visible');
+  else blitzSpeedRow.classList.remove('visible');
+});
+
+blitzSlider.addEventListener('input', () => {
+  blitzMs = parseInt(blitzSlider.value);
+  blitzVal.textContent = (blitzMs / 1000).toFixed(1).replace('.', ',') + ' Sek.';
+});
+
+startBtn.addEventListener('click', startSession);
+
+// ═══════════ EVENTS: READ ═══════════
+weiterBtn.addEventListener('click', nextItem);
+
+backBtn.addEventListener('click', () => {
+  stopTimer();
+  if (blitzTimeout) clearTimeout(blitzTimeout);
+  showScreen('screen-menu');
+});
+
+// ═══════════ EVENTS: RESULT ═══════════
+againBtn.addEventListener('click', startSession);
+menuBtn.addEventListener('click', () => showScreen('screen-menu'));
+
+// ═══════════ KEYBOARD ═══════════
+document.addEventListener('keydown', e => {
+  if (screenRead.classList.contains('active')) {
+    if (e.code === 'Space' || e.code === 'ArrowRight') {
+      e.preventDefault();
+      if (!weiterBtn.disabled) nextItem();
+    }
+  }
+});
+
+</script>
+</body>
+</html>

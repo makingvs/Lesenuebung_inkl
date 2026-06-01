@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lesetraining</title>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend+Deca:wght@300;400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend+Deca:wght@300;400;700;900&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -250,7 +250,7 @@
   .display-area.blitz-flash { border-color: var(--accent); }
 
   .display-text {
-    font-family: var(--font-display);
+    font-family: 'Nunito', var(--font-display), sans-serif;
     font-weight: 900;
     font-size: clamp(3rem, 14vw, 7rem);
     letter-spacing: 0.04em;
@@ -547,33 +547,6 @@
 <script>
 // ═══════════ DATA ═══════════
 // Kuratierte deutsche Silben (2 und 3 Buchstaben) pro Gruppe
-const SILBEN_DB = {
-  AMLU: [
-    'MA','AM','LA','AL','MU','UM','LU','UL',
-    'MAL','LAM','LUM','MUL','ALM','LAU','MAU','AUL'
-  ],
-  FSIN: [
-    'FI','SI','NI','IS','IN','NI','SF','NS',
-    'FIN','SIN','NIS','INS','IST','INN','NIF','FIS'
-  ],
-  BOWE: [
-    'BO','OB','WO','BE','EB','OW','WE','EW',
-    'BOW','WOB','WEB','OBE','BOE','WOE','OWE','BEW'
-  ],
-  RGDH: [
-    'RA','AR','GA','AG','DA','AD','HA','AH','GR','DR',
-    'RAD','DAR','GAR','HAR','GRA','DRA','HAD','RAH','HAG','DAH'
-  ],
-  KTÄP: [
-    'KA','AK','TA','AT','PÄ','ÄP','KÄ','ÄK','ÄT','TÄ',
-    'KAT','TAK','KÄP','PÄK','TAP','PAT','KAP','PAK','TÄP','PÄT'
-  ],
-  ZÖVCJÜXY: [
-    'ZO','OZ','VÖ','ÖV','JÜ','ÜJ','JO','OJ','ZÜ','ÜZ',
-    'ZOV','VOZ','JOY','ZÖV','VÖC','ÖVZ','JÜX','ZOJ','VOJ','JOZ'
-  ]
-};
-
 const DATA = {
   AMLU: {
     buchstaben: ['A','M','L','U'],
@@ -822,28 +795,44 @@ function validateStart() {
   startBtn.disabled = !(hasLetters && selectedDiff && selectedMode);
 }
 
-function getSilbenForLetters(g, activeLetters) {
-  // Filter the curated syllable list: keep only syllables whose letters
-  // are all in the active set for this group
-  const all = SILBEN_DB[g] || [];
-  return all.filter(syl => [...syl].every(ch => activeLetters.has(ch)));
+const VOKALE = new Set(['A','E','I','O','U','Ä','Ö','Ü']);
+
+function getAllActiveLetters() {
+  const all = new Set();
+  for (const g of selectedGroups) {
+    if (selectedLetters[g]) {
+      for (const l of selectedLetters[g]) all.add(l);
+    }
+  }
+  return all;
 }
 
-function getActiveLetters(g) {
-  return selectedLetters[g] ? [...selectedLetters[g]] : [...DATA[g].buchstaben];
+function generateSilben(letterSet) {
+  const letters = [...letterSet];
+  const vokale      = letters.filter(l => VOKALE.has(l));
+  const konsonanten = letters.filter(l => !VOKALE.has(l));
+  const result = new Set();
+  for (const k of konsonanten) {
+    for (const v of vokale) {
+      result.add(k + v); // KV
+      result.add(v + k); // VK
+    }
+  }
+  return [...result];
 }
 
 function buildItems() {
   let pool = [];
-  for (const g of selectedGroups) {
-    if (!selectedLetters[g] || selectedLetters[g].size === 0) continue;
-    if (selectedDiff === 'silben') {
-      const filtered = getSilbenForLetters(g, selectedLetters[g]);
-      pool = pool.concat(filtered.length > 0 ? filtered : getSilbenForLetters(g, new Set(DATA[g].buchstaben)));
-    } else if (selectedDiff === 'buchstaben') {
-      pool = pool.concat([...selectedLetters[g]]);
-    } else if (DATA[g] && DATA[g][selectedDiff]) {
-      pool = pool.concat(DATA[g][selectedDiff]);
+  if (selectedDiff === 'silben') {
+    pool = generateSilben(getAllActiveLetters());
+  } else {
+    for (const g of selectedGroups) {
+      if (!selectedLetters[g] || selectedLetters[g].size === 0) continue;
+      if (selectedDiff === 'buchstaben') {
+        pool = pool.concat([...selectedLetters[g]]);
+      } else if (DATA[g] && DATA[g][selectedDiff]) {
+        pool = pool.concat(DATA[g][selectedDiff]);
+      }
     }
   }
   pool = shuffle(pool);
